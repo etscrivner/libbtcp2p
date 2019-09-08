@@ -17,7 +17,7 @@ int main() {
   btcp2p_timer_init(&ping_timer, 10 /* secs */);
   
   if (btcp2p_connect(&connection, "testnet", "127.0.0.1")) {
-    while (btcp2p_message_pump(&connection) && IsRunning) {
+    while (btcp2p_message_pump(&connection)) {
       if (btcp2p_has_message(&connection, "ping")) {
         uint64_t nonce;
         btcp2p_unpack_message(&connection, "l", &nonce);
