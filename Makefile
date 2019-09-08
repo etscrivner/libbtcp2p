@@ -36,11 +36,11 @@ OFILES=libbtcp2p/log.o \
 	libbtcp2p/vartypes.o \
 	libbtcp2p/connection.o
 
-btcp2p: btcp2p_example.c libbtcp2p.a
-	$(CC) $(CFLAGS) -o btcp2p_example btcp2p_example.c -L. -lbtcp2p $(LDFLAGS)
-
 libbtcp2p.a: $(OFILES)
 	$(AR) rcs libbtcp2p.a $(OFILES)
+
+btcp2p_example: btcp2p_example.c libbtcp2p.a
+	$(CC) $(CFLAGS) -o btcp2p_example btcp2p_example.c -L. -lbtcp2p $(LDFLAGS)
 
 libbtcp2p/log.o: libbtcp2p/log.c libbtcp2p/log.h
 	$(CC) $(CFLAGS) -c -o libbtcp2p/log.o libbtcp2p/log.c $(LDFLAGS)

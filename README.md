@@ -2,8 +2,8 @@
 
 A simple C-interface for interacting with nodes speaking the [Bitcoin P2P protocol](https://en.bitcoin.it/wiki/Protocol_documentation).
 
-* [Documentation](docs/index.md)
-* [Examples](docs/examples/index.md)
+* Documentation
+* Examples
 
 ## Example
 
@@ -45,4 +45,18 @@ int main() {
 
 ## Building
 
+```
+make
+```
+
+## Build Example
+
+```
+make btcp2p_example
+```
+
 ## Testing
+
+```
+make check
+```
