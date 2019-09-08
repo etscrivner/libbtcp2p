@@ -1,0 +1,10 @@
+# Compiled stuff
+btcp2p_example
+*.o
+libbtcp2p.a
+
+# Emacs
+.dir-locals.el
+*~
+\#*
+.\#*\#
