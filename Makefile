@@ -1,6 +1,6 @@
 .PHONY=clean
 
-CFLAGS=-Wall -Werror -I.
+CFLAGS=-Wall -Werror -std=c11 -D_POSIX_C_SOURCE=200112L -D_XOPEN_SOURCE=700L -I.
 LDFLAGS=-lssl -lcrypto
 
 # Pick one of:
