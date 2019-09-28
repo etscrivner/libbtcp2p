@@ -24,14 +24,13 @@
 static const char* BTCP2P_USER_AGENT = "/btcp2p:0.0.1/";
 
 static const struct btcp2p_chain_t CHAINS[] = {
-  [0] = { .name = "mainnet", .version = 70015, .magic = 0xD9B4BEF9, .port = 8333 },
-  [1] = { .name = "regtest", .version = 70015, .magic = 0xDAB5BFFA, .port = 18444 },
-  [2] = { .name = "testnet", .version = 70015, .magic = 0x0709110B, .port = 18333 },
+  [0] = { .name = "mainnet", .version = BTCP2P_PROTOCOL_VERSION, .magic = BTCP2P_MAGIC_MAINNET, .port = 8333 },
+  [1] = { .name = "regtest", .version = BTCP2P_PROTOCOL_VERSION, .magic = BTCP2P_MAGIC_REGTEST, .port = 18444 },
+  [2] = { .name = "testnet", .version = BTCP2P_PROTOCOL_VERSION, .magic = BTCP2P_MAGIC_TESTNET, .port = 18333 },
   [3] = { 0 }
 };
 
-static struct btcp2p_chain_t const *
-btcp2p_chain_for_network(char const * const network) {
+static struct btcp2p_chain_t const * btcp2p_chain_for_network(char const * const network) {
   for (struct btcp2p_chain_t const * next = CHAINS;
        next->name != NULL;
        next++)
@@ -58,8 +57,8 @@ static void btcp2p_netaddr_create(struct btcp2p_netaddr_t* addr,
 
 // btcp2p_payload_checksum returns the first 4 bytes of the double-SHA256 hash
 // of the given payload.
-uint32_t btcp2p_payload_checksum(uint8_t const * const payload,
-                                 size_t payload_size)
+static uint32_t btcp2p_payload_checksum(uint8_t const * const payload,
+                                        size_t payload_size)
 {
   static unsigned char m1[SHA256_DIGEST_LENGTH];
   static unsigned char m2[SHA256_DIGEST_LENGTH];
@@ -105,14 +104,14 @@ static bool btcp2p_recv_message(struct btcp2p_connection_t* connection,
   }
 
   if (message->header.length > 0) {
-    // TODO: Move this stuff into the checked buffer abstraction
-    if (message->payload.capacity < message->header.length) {
-      btcp2p_checked_buffer_resize(&message->payload, message->header.length);
-    }
+    uint8_t* buffer = btcp2p_checked_buffer_prepare_copy(
+      &message->payload,
+      message->header.length
+    );
 
     result = recv(
       connection->socket,
-      message->payload.buffer,
+      buffer,
       message->header.length,
       MSG_WAITALL
     );
@@ -126,25 +125,22 @@ static bool btcp2p_recv_message(struct btcp2p_connection_t* connection,
       return false;
     }
 
-    message->payload.len = message->header.length;
-    message->payload.rw_cursor = 0;
-  }
-
-  // Validate the checksum of the message
-  uint32_t actual_checksum = btcp2p_payload_checksum(
-    message->payload.buffer,
-    message->header.length
-  );
-  if (message->header.checksum != actual_checksum) {
-    btcp2p_log(
-      BTCP2P_LOG_ERROR,
-      "invalid message checksum: expected %08x was %08x.\n",
-      message->header.checksum,
-      actual_checksum
+    // Validate the checksum of the message
+    uint32_t actual_checksum = btcp2p_payload_checksum(
+      buffer, message->header.length
     );
-    return false;
+    if (message->header.checksum != actual_checksum) {
+      btcp2p_log(
+        BTCP2P_LOG_ERROR,
+        "invalid message checksum: expected %08x was %08x.\n",
+        message->header.checksum,
+        actual_checksum
+      );
+      return false;
+    }
   }
 
+  connection->has_message = true;
   return true;
 }
 
@@ -172,8 +168,6 @@ bool btcp2p_perform_handshake(struct btcp2p_connection_t* conn)
     return false;
   }
 
-  // TODO: Just make btcp2p_recv_message set this
-  conn->has_message = true;
   if (!btcp2p_has_message(conn, "version")) {
     btcp2p_log(BTCP2P_LOG_ERROR, "did not receive version message\n");
     return false;
@@ -183,7 +177,6 @@ bool btcp2p_perform_handshake(struct btcp2p_connection_t* conn)
     return false;
   }
 
-  conn->has_message = true;
   if (!btcp2p_has_message(conn, "verack")) {
     btcp2p_log(BTCP2P_LOG_ERROR, "did not receive verack message\n");
     return false;
@@ -325,7 +318,7 @@ bool btcp2p_connect(struct btcp2p_connection_t* connection,
   if (error_val != 0) {
     btcp2p_log(
       BTCP2P_LOG_ERROR,
-      "connection error: %s.\n",
+      "%s\n",
       strerror(error_val)
     );
 
@@ -353,7 +346,6 @@ bool btcp2p_connect(struct btcp2p_connection_t* connection,
   // Set the sending address
   connection->addr_from.services = ~0;
   if (connection->remote_address->ai_family == AF_INET6) {
-    // TODO(eric): See if this actually works...
     struct sockaddr_in6* addr = ((struct sockaddr_in6*)connection->remote_address);
     memcpy(connection->addr_from.address, &addr->sin6_addr, 16);
     connection->addr_from.port = htons(addr->sin6_port);
@@ -441,6 +433,7 @@ bool btcp2p_pack_and_send_message(struct btcp2p_connection_t* connection,
 
   btcp2p_checked_buffer_prepare_write(&connection->message.payload);
   connection->message.header.magic = connection->chain->magic;
+  memset(connection->message.header.command, 0, 12);
   strncpy(connection->message.header.command, command, 12);
 
   va_list args;

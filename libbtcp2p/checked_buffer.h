@@ -69,8 +69,18 @@ void btcp2p_checked_buffer_write(struct btcp2p_checked_buffer_t* cb,
                                  uint8_t const * const src,
                                  size_t write_amount);
 
-// btcp2p_checked_buffer_amount_written returns the number of bytes written
+// btcp2p_checked_buffer_amount_written returns the number of bytes writtenp
 // into the internal buffer.
 uint32_t btcp2p_checked_buffer_amount_written(struct btcp2p_checked_buffer_t* cb);
+
+// btcp2p_checked_buffer_prepare_copy prepares the given checked buffer to copy
+// the given amount of data. It returns a pointer to a buffer that can receive
+// the given amount of data or NULL if enough space could not be allocated.
+uint8_t* btcp2p_checked_buffer_prepare_copy(struct btcp2p_checked_buffer_t* cb,
+                                            size_t copy_amount_bytes);
+
+// btcp2p_checked_buffer_pointer returns a pointer to the checked buffer at its
+// current read-write position.
+uint8_t* btcp2p_checked_buffer_cursor(struct btcp2p_checked_buffer_t* cb);
 
 #endif // LIBBTCP2P_CHECKED_BUFFER_H

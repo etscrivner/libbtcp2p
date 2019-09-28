@@ -3,20 +3,8 @@
 
 #include "libbtcp2p/checked_buffer.h"
 
-// TODO: Do we really need this? Premature optimization?
-
-// nearest_power_of_two does some bit-twiddling to get the nearest power of 2
-// to the given value.
-uint32_t nearest_power_of_two(uint32_t v) {
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    v++;
-    return v;
-}
+// ALIGNUP aligns the given amount to ensure that it is a power of alignment.
+#define ALIGNUP(Size, Alignment) ( (((uint32_t)Size) + (Alignment) - 1) & (~((Alignment) - 1)) )
 
 void btcp2p_checked_buffer_create(struct btcp2p_checked_buffer_t* cb) {
   memset(cb, 0, sizeof(struct btcp2p_checked_buffer_t));
@@ -26,8 +14,7 @@ void btcp2p_checked_buffer_create(struct btcp2p_checked_buffer_t* cb) {
 void btcp2p_checked_buffer_resize(struct btcp2p_checked_buffer_t* cb,
                                   size_t capacity)
 {
-  // TODO: Test for overflows when finding nearest power of 2.
-  cb->capacity = nearest_power_of_two(capacity);
+  cb->capacity = ALIGNUP(capacity, 64);
   cb->buffer = realloc(cb->buffer, cb->capacity);
 }
 
@@ -109,4 +96,21 @@ void btcp2p_checked_buffer_write(struct btcp2p_checked_buffer_t* cb,
 
 uint32_t btcp2p_checked_buffer_amount_written(struct btcp2p_checked_buffer_t* cb) {
   return cb->rw_cursor;
+}
+
+uint8_t* btcp2p_checked_buffer_prepare_copy(struct btcp2p_checked_buffer_t* cb,
+                                            size_t copy_amount_bytes)
+{
+  if (copy_amount_bytes > cb->capacity) {
+    btcp2p_checked_buffer_resize(cb, copy_amount_bytes);
+  }
+
+  cb->len = copy_amount_bytes;
+  cb->rw_cursor = 0;
+
+  return cb->buffer;
+}
+
+uint8_t* btcp2p_checked_buffer_cursor(struct btcp2p_checked_buffer_t* cb) {
+  return cb->buffer + cb->rw_cursor;
 }

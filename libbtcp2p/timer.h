@@ -1,3 +1,4 @@
+// Simple timer interfaces
 #ifndef LIBBTCP2P_TIMER_H
 #define LIBBTCP2P_TIMER_H
 

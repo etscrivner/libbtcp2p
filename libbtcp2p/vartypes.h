@@ -1,3 +1,4 @@
+// Interfaces for encoding, packing, and unpacking variable-length types.
 #ifndef LIBBTCP2P_VARTYPES_H
 #define LIBBTCP2P_VARTYPES_H
 

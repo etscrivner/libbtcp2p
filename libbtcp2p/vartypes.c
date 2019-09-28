@@ -30,7 +30,7 @@ void btcp2p_varint_pack(struct btcp2p_varint_t const * const vi,
 bool btcp2p_varint_unpack(struct btcp2p_varint_t* vi,
                           struct btcp2p_checked_buffer_t* cb)
 {
-  // NOTE: Code below will no work on big-endian machines.
+  // NOTE: Code below will not work on big-endian machines.
 
   // First, read the leading byte which will tell us the total data size.
   if (!btcp2p_checked_buffer_read(cb, &vi->data[0], 1)) {
@@ -89,14 +89,11 @@ bool btcp2p_varstr_unpack(struct btcp2p_varstr_t* vs,
     return false;
   }
 
-  // TODO: Create a checked buffer method to do this. This leaks the internal
-  // data structure.
-
   // TODO: We literally just point to the contents of the buffer at this point.
   // Any calling code that actually wants to use the string should strdup() it
   // first. This is really nasty and non-obvious... perhaps there's a better
   // way.
-  vs->data = (char*)(cb->buffer + cb->rw_cursor);
+  vs->data = (char*)btcp2p_checked_buffer_cursor(cb);
 
   if (!btcp2p_checked_buffer_fastforward(cb, vs->length.value)) {
     return false;

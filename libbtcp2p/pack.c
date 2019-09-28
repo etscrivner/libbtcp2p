@@ -9,8 +9,8 @@
 #include "libbtcp2p/vartypes.h"
 
 size_t btcp2p_pack(struct btcp2p_checked_buffer_t* cb,
-                     char const * const restrict format,
-                     ...)
+                   char const * const restrict format,
+                   ...)
 {
   va_list args;
   va_start(args, format);
@@ -21,8 +21,8 @@ size_t btcp2p_pack(struct btcp2p_checked_buffer_t* cb,
 }
 
 size_t btcp2p_vpack(struct btcp2p_checked_buffer_t* cb,
-                      char const * const restrict format,
-                      va_list args)
+                    char const * const restrict format,
+                    va_list args)
 {
   uint8_t b;
   int8_t B;
@@ -147,8 +147,8 @@ size_t btcp2p_vpack(struct btcp2p_checked_buffer_t* cb,
 }                     
 
 size_t btcp2p_unpack(struct btcp2p_checked_buffer_t* cb,
-                       char const * const restrict format,
-                       ...)
+                     char const * const restrict format,
+                     ...)
 {
   va_list args;
   va_start(args, format);
@@ -159,8 +159,8 @@ size_t btcp2p_unpack(struct btcp2p_checked_buffer_t* cb,
 }
 
 size_t btcp2p_vunpack(struct btcp2p_checked_buffer_t* cb,
-                        char const * const restrict format,
-                        va_list args)
+                      char const * const restrict format,
+                      va_list args)
 {
   struct btcp2p_netaddr_t* netaddr;
   struct btcp2p_varint_t* varint;

@@ -1,10 +1,11 @@
-// Basic logging to standard output.
+// Simple logging interfaces
 #ifndef LIBBTCP2P_LOG_H
 #define LIBBTCP2P_LOG_H
 
 #include <stdint.h>
 #include <stdlib.h>
 
+// Logging levels
 enum btcp2p_log_level_t {
   BTCP2P_LOG_DEBUG,
   BTCP2P_LOG_INFO,

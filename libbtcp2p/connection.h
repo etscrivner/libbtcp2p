@@ -1,3 +1,4 @@
+// Interfaces for creating and interacting with P2P network connections.
 #ifndef LIBBTCP2P_CONNECTION_H
 #define LIBBTCP2P_CONNECTION_H
 
@@ -7,23 +8,34 @@
 #include "libbtcp2p/checked_buffer.h"
 #include "libbtcp2p/types.h"
 
+// Protocol version number
+#define BTCP2P_PROTOCOL_VERSION 70015
+
+// Network magic numbers
+#define BTCP2P_MAGIC_MAINNET 0xD9B4BEF9
+#define BTCP2P_MAGIC_TESTNET 0x0709110B
+#define BTCP2P_MAGIC_REGTEST 0xDAB5BFFA
+
+// P2P message header
 struct btcp2p_message_header_t {
-  uint32_t magic;
-  char command[12];
-  uint32_t length;
-  uint32_t checksum;
+  uint32_t magic; ///< Network magic number
+  char command[12]; ///< Command to execute as a string
+  uint32_t length; ///< Length of the payload
+  uint32_t checksum; ///< Checksum of message contents
 };
 
+// P2P message
 struct btcp2p_message_t {
   struct btcp2p_message_header_t header;
   struct btcp2p_checked_buffer_t payload;
 };
 
+// Chain definition
 struct btcp2p_chain_t {
-  char const * const name;
-  int32_t version;
-  uint32_t magic;
-  uint16_t port;
+  char const * const name; ///< Name of the chain
+  int32_t version; ///< P2P protocol version
+  uint32_t magic; ///< Network magic number
+  uint16_t port; ///< Network port
 };
 
 struct btcp2p_connection_t {
@@ -63,6 +75,8 @@ bool btcp2p_unpack_message(struct btcp2p_connection_t* connection,
                            char const * const format,
                            ...);
 
+// btcp2p_pack_and_send_message packs a message according to the given format
+// string and attempts to send it over the given connection.
 bool btcp2p_pack_and_send_message(struct btcp2p_connection_t* connection,
                                   char const command[12],
                                   char const * const restrict format,
